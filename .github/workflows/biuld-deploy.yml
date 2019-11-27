@@ -1,0 +1,28 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:    
+      - dev
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Build
+      run:
+        docker run
+        -v ${{ github.workspace }}:/srv/jekyll -v ${{ github.workspace }}/_site:/srv/jekyll/_site
+        jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && jekyll build --future"
+
+    - name: Deploy
+      uses: JamesIves/github-pages-deploy-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        BASE_BRANCH: dev
+        BRANCH: master
+        FOLDER: _site
+        BUILD_SCRIPT: |
+          echo "theme: jekyll-theme-cayman" > _site/_config.yml
+          touch _site/.nojekyll
